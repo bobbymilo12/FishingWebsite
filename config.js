@@ -9,7 +9,7 @@ const CONFIG = {
   ADMIRALTY_API_KEY: "71f55373813c4452a0263d564638c327",
 
   // CORS proxy for browser requests (ADMIRALTY API blocks direct cross-origin calls)
-  CORS_PROXY: "https://corsproxy.io/?url=",
+  CORS_PROXY: "https://cors-anywhere.herokuapp.com/",
 
   // Plymouth (Devonport) tidal station. Leave as is for Plymouth.
   ADMIRALTY_STATION_ID: "0014",

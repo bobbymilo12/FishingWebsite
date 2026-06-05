@@ -562,7 +562,7 @@ async function loadTides(force) {
     let events = cacheGet(cacheKey, 6 * 60 * 60 * 1000, force);
     if (!events) {
       const path = `https://admiraltyapi.azure-api.net/uktidalapi/api/V1/Stations/${CONFIG.ADMIRALTY_STATION_ID}/TidalEvents?duration=7`;
-      const url = CONFIG.CORS_PROXY ? CONFIG.CORS_PROXY + encodeURIComponent(path) : path;
+      const url = CONFIG.CORS_PROXY ? CONFIG.CORS_PROXY + path : path;
       const res = await fetch(url, {
         headers: { "Ocp-Apim-Subscription-Key": CONFIG.ADMIRALTY_API_KEY }
       });
