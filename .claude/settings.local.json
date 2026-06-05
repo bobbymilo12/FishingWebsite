@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "WebSearch",
-      "Bash(node --check app.js)"
+      "Bash(node --check app.js)",
+      "Bash(node --check config.js)",
+      "Bash(node --check cloudflare-worker.js)"
     ]
   }
 }

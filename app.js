@@ -544,23 +544,34 @@ function renderMarine(c, units) {
    ============================================================ */
 async function loadTides(force) {
   const body = $("#tides-body");
+  const useProxy = !!CONFIG.TIDES_PROXY_URL;
 
-  if (!CONFIG.ADMIRALTY_API_KEY) {
+  if (!useProxy && !CONFIG.ADMIRALTY_API_KEY) {
     body.innerHTML = `
       <div class="error-note">
-        <strong>No tide key set yet.</strong> Get a free ADMIRALTY key at
-        <a href="https://admiralty.azure-api.net/" target="_blank" rel="noopener">admiralty.azure-api.net</a>,
-        then paste it into <code>config.js</code> (<code>ADMIRALTY_API_KEY</code>).
+        <strong>No tide source set yet.</strong> Either deploy the Cloudflare
+        Worker and set <code>TIDES_PROXY_URL</code>, or get a free ADMIRALTY key at
+        <a href="https://admiralty.azure-api.net/" target="_blank" rel="noopener">admiralty.azure-api.net</a>
+        and paste it into <code>config.js</code> (<code>ADMIRALTY_API_KEY</code>).
       </div>`;
     return;
   }
 
-  const path =
-    `https://admiraltyapi.azure-api.net/uktidalapi/api/V1/Stations/` +
-    `${CONFIG.ADMIRALTY_STATION_ID}/TidalEvents?duration=7`;
-  const url = CONFIG.CORS_PROXY
-    ? CONFIG.CORS_PROXY + encodeURIComponent(path)
-    : path;
+  // Build the request. Proxy mode keeps the key server-side; direct mode sends
+  // it from the browser (optionally via a CORS proxy).
+  let url, fetchOpts = {};
+  if (useProxy) {
+    const u = new URL(CONFIG.TIDES_PROXY_URL);
+    u.searchParams.set("station", CONFIG.ADMIRALTY_STATION_ID);
+    u.searchParams.set("duration", "7");
+    url = u.toString();
+  } else {
+    const path =
+      `https://admiraltyapi.azure-api.net/uktidalapi/api/V1/Stations/` +
+      `${CONFIG.ADMIRALTY_STATION_ID}/TidalEvents?duration=7`;
+    url = CONFIG.CORS_PROXY ? CONFIG.CORS_PROXY + encodeURIComponent(path) : path;
+    fetchOpts.headers = { "Ocp-Apim-Subscription-Key": CONFIG.ADMIRALTY_API_KEY };
+  }
 
   try {
     // Tide predictions barely change, so cache for 6h to spare the ADMIRALTY
@@ -568,9 +579,7 @@ async function loadTides(force) {
     const cacheKey = "fw:tides:" + CONFIG.ADMIRALTY_STATION_ID;
     let events = cacheGet(cacheKey, 6 * 60 * 60 * 1000, force);
     if (!events) {
-      const res = await fetch(url, {
-        headers: { "Ocp-Apim-Subscription-Key": CONFIG.ADMIRALTY_API_KEY },
-      });
+      const res = await fetch(url, fetchOpts);
       if (!res.ok) throw new Error("HTTP " + res.status);
       events = await res.json();
       cacheSet(cacheKey, events);
@@ -579,13 +588,20 @@ async function loadTides(force) {
     fishState.tides = events;
     renderFishing(); // fold tide state into the bite forecast
   } catch (err) {
-    body.innerHTML = `
-      <div class="error-note">
-        <strong>Couldn't load tides.</strong> This is usually a browser
-        <em>CORS</em> block on the ADMIRALTY API. Fix: open <code>config.js</code>
-        and set <code>CORS_PROXY</code> to <code>"https://corsproxy.io/?url="</code>,
-        then refresh.<br><span class="small">(${err.message})</span>
-      </div>`;
+    body.innerHTML = useProxy
+      ? `<div class="error-note">
+          <strong>Couldn't load tides from the proxy.</strong> Check that the
+          Worker is deployed, <code>TIDES_PROXY_URL</code> is correct, and the
+          <code>ADMIRALTY_API_KEY</code> secret is set on the Worker.
+          <br><span class="small">(${err.message})</span>
+        </div>`
+      : `<div class="error-note">
+          <strong>Couldn't load tides.</strong> This is usually a browser
+          <em>CORS</em> block on the ADMIRALTY API. Fix: open <code>config.js</code>
+          and set <code>CORS_PROXY</code> to <code>"https://corsproxy.io/?url="</code>
+          (or deploy the Cloudflare Worker), then refresh.
+          <br><span class="small">(${err.message})</span>
+        </div>`;
   }
 }
 

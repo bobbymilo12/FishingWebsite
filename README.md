@@ -12,7 +12,8 @@ Plain HTML / CSS / JavaScript — no build step, no framework, no install.
 | `index.html` | Page structure |
 | `styles.css` | Ocean-themed styling |
 | `app.js` | Fetches and renders all data |
-| `config.js` | **The only file you edit** — API key & location |
+| `config.js` | **The only file you edit** — API key/proxy & location |
+| `cloudflare-worker.js` | Optional free proxy that hides the tide key (for hosting) |
 
 ## Running it
 
@@ -55,8 +56,41 @@ If you see that error on the tides card, open `config.js` and set:
 ```js
 CORS_PROXY: "https://corsproxy.io/?url=",
 ```
-then refresh. (A public proxy is fine for a demo; for production you'd
-route the call through your own small backend instead.)
+then refresh. (A public proxy is fine for a demo; for a public site, use the
+Cloudflare Worker below instead — it also hides your key.)
+
+## Hosting it (free) — GitHub Pages
+
+This is a static site, so GitHub Pages serves it for free:
+
+1. Push the repo to GitHub and make it **public**.
+2. **Settings → Pages → Source:** *Deploy from a branch* → branch `main`,
+   folder `/ (root)` → **Save**.
+3. After ~1 min it's live at `https://<your-username>.github.io/<repo>/`.
+
+## Keeping the tide key private — Cloudflare Worker (recommended for a public site)
+
+Because this is a client-side app, anything in `config.js` is visible to
+visitors. To avoid exposing your ADMIRALTY key on a public site, route tide
+requests through the free Cloudflare Worker in **`cloudflare-worker.js`** — it
+holds the key as a server-side secret, adds CORS, and replaces the
+`corsproxy.io` hop.
+
+1. Deploy `cloudflare-worker.js` — either paste it into the Cloudflare
+   dashboard (steps in the file's header comment), **or** with the CLI from
+   this folder (uses the included `wrangler.toml`):
+   ```powershell
+   npx wrangler deploy
+   npx wrangler secret put ADMIRALTY_API_KEY
+   ```
+2. Add the Worker secret `ADMIRALTY_API_KEY` (your ADMIRALTY Primary key) —
+   the second command above does this.
+3. Put the Worker URL into `config.js`:
+   ```js
+   TIDES_PROXY_URL: "https://fishing-tides.your-name.workers.dev",
+   ```
+4. You can now blank out `ADMIRALTY_API_KEY` in `config.js` — it's no longer
+   used by the browser.
 
 ## Changing location
 

@@ -3,20 +3,28 @@
    ============================================================ */
 const CONFIG = {
   // --- TIDES (ADMIRALTY UK Tidal API) ------------------------
-  // 1. Register for a FREE key (takes ~2 min):
-  //      https://admiralty.azure-api.net/  ->  sign up -> subscribe
-  //      to the "UK Tidal API - Discovery" product.
-  // 2. Paste your Primary key between the quotes below.
+  // RECOMMENDED: route tide requests through the free Cloudflare Worker
+  // (see cloudflare-worker.js). It keeps your ADMIRALTY key server-side so
+  // it is NOT exposed in the browser, and handles CORS. Paste the Worker's
+  // URL here once deployed, e.g.
+  //   "https://fishing-tides.your-name.workers.dev"
+  // When this is set, ADMIRALTY_API_KEY and CORS_PROXY below are unused
+  // (you can safely blank out the key).
+  TIDES_PROXY_URL: "",
+
+  // DIRECT MODE (only used when TIDES_PROXY_URL is empty) ------
+  // Register for a FREE key (~2 min) at https://admiralty.azure-api.net/
+  // and subscribe to the "UK Tidal API - Discovery" product, then paste
+  // your Primary key here. NOTE: in direct mode this key is visible to
+  // anyone using the site — prefer the Worker above for a public site.
   ADMIRALTY_API_KEY: "d39c3cd5c0e24fb684c6cd54c6e0a5f4",
 
   // Plymouth (Devonport) tidal station. Leave as is for Plymouth.
   ADMIRALTY_STATION_ID: "0014",
 
-  // The ADMIRALTY API sometimes blocks direct browser calls (CORS).
-  // If tides fail to load, paste a CORS proxy URL here, e.g.:
-  //   "https://corsproxy.io/?url="   (the request URL is appended)
-  // Leave empty ("") to try a direct call first.
-  CORS_PROXY: "https://corsproxy.io/?url= ",
+  // CORS proxy for DIRECT MODE (the ADMIRALTY API often blocks browser
+  // calls). Leave empty ("") to try a direct call first.
+  CORS_PROXY: "https://corsproxy.io/?url=",
 
   // --- LOCATION (Plymouth, UK) -------------------------------
   LAT: 50.3712,
