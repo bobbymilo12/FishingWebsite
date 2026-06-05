@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Plymouth Fishing — Tides & Weather</title>
+  <meta name="description" content="Live tide times, weather, wind and marine conditions for fishing in Plymouth, UK." />
+  <link rel="preconnect" href="https://api.open-meteo.com" />
+  <link rel="preconnect" href="https://marine-api.open-meteo.com" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="brand">
+      <span class="brand-icon">🎣</span>
+      <div>
+        <h1>Plymouth Fishing</h1>
+        <p class="tagline">Tides &amp; weather for the Plymouth coast</p>
+      </div>
+    </div>
+    <div class="header-meta">
+      <span id="updated" class="updated">Loading…</span>
+      <button id="refresh" class="refresh-btn" title="Refresh data">↻ Refresh</button>
+    </div>
+  </header>
+
+  <main class="grid">
+    <!-- Current conditions -->
+    <section class="card card--hero" id="current-card">
+      <h2 class="card-title">Right now in <span id="place">Plymouth</span></h2>
+      <div class="hero-body">
+        <div class="hero-temp">
+          <span id="cur-icon" class="cur-icon">⛅</span>
+          <div>
+            <span id="cur-temp" class="cur-temp">--°</span>
+            <span id="cur-desc" class="cur-desc">—</span>
+          </div>
+        </div>
+        <ul class="hero-stats">
+          <li><span class="stat-label">Feels like</span><span id="cur-feels">--°</span></li>
+          <li><span class="stat-label">Wind</span><span id="cur-wind">—</span></li>
+          <li><span class="stat-label">Humidity</span><span id="cur-humidity">--%</span></li>
+          <li><span class="stat-label">Pressure</span><span id="cur-pressure">-- hPa</span></li>
+          <li class="stat-tide"><span class="stat-label">Tide</span><span id="cur-tide">—</span></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- 7-day forecast -->
+    <section class="card card--wide" id="forecast-card">
+      <h2 class="card-title">📅 7-day forecast</h2>
+      <div id="forecast-body" class="forecast-row">
+        <p class="loading">Loading forecast…</p>
+      </div>
+    </section>
+
+    <!-- Fishing conditions -->
+    <section class="card" id="fishing-card">
+      <h2 class="card-title">🎣 Fishing conditions</h2>
+      <p class="card-sub">Bite forecast from pressure, sky &amp; wind</p>
+      <div id="fishing-body" class="fishing-body">
+        <p class="loading">Loading…</p>
+      </div>
+    </section>
+
+    <!-- Tides -->
+    <section class="card" id="tides-card">
+      <h2 class="card-title">🌊 Tide times</h2>
+      <p class="card-sub" id="tides-station">Plymouth (Devonport)</p>
+      <div id="tide-calendar" class="tide-calendar"></div>
+      <div id="tides-body" class="tides-body">
+        <p class="loading">Loading tides…</p>
+      </div>
+    </section>
+
+    <!-- Marine -->
+    <section class="card" id="marine-card">
+      <h2 class="card-title">🌊 Sea conditions</h2>
+      <div id="marine-body" class="stat-grid">
+        <p class="loading">Loading marine data…</p>
+      </div>
+    </section>
+
+    <!-- Sun & Moon -->
+    <section class="card" id="sunmoon-card">
+      <h2 class="card-title">☀️ Sun &amp; moon</h2>
+      <div id="sunmoon-body" class="stat-grid">
+        <p class="loading">Loading…</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>
+      Weather &amp; marine data by
+      <a href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo</a>.
+      Tide predictions by
+      <a href="https://www.admiralty.co.uk" target="_blank" rel="noopener">ADMIRALTY UKHO</a>.
+    </p>
+    <p class="disclaimer">For recreational planning only — always check official sources before heading out on the water.</p>
+  </footer>
+
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
