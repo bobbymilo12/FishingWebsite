@@ -52,12 +52,9 @@ Then visit http://localhost:8000
 ### If tides still don't load (CORS)
 
 The ADMIRALTY API sometimes refuses direct browser calls (a CORS block).
-If you see that error on the tides card, open `config.js` and set:
-```js
-CORS_PROXY: "https://corsproxy.io/?url=",
-```
-then refresh. (A public proxy is fine for a demo; for a public site, use the
-Cloudflare Worker below instead — it also hides your key.)
+If that happens, use the Cloudflare Worker proxy in `cloudflare-worker.js`
+instead of a public demo proxy. The public `cors-anywhere.herokuapp.com`
+service is only for temporary development use and may return 403/Forbidden.
 
 ## Hosting it (free) — GitHub Pages
 

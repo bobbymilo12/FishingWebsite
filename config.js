@@ -3,13 +3,9 @@
    ============================================================ */
 const CONFIG = {
   // --- TIDES (ADMIRALTY UK Tidal API) ------------------------
-  // Register for a FREE key (~2 min) at https://admiralty.azure-api.net/
-  // and subscribe to the "UK Tidal API - Discovery" product, then paste
-  // your Primary key here.
-  ADMIRALTY_API_KEY: "71f55373813c4452a0263d564638c327",
-
-  // CORS proxy for browser requests (ADMIRALTY API blocks direct cross-origin calls)
-  CORS_PROXY: "https://cors-anywhere.herokuapp.com/",
+  // Use the Cloudflare Worker proxy (keeps API key server-side).
+  // Do not rely on the cors-anywhere demo proxy for production.
+  TIDES_PROXY_URL: "https://fishing-tides.plymouthfishing.workers.dev/",
 
   // Plymouth (Devonport) tidal station. Leave as is for Plymouth.
   ADMIRALTY_STATION_ID: "0014",

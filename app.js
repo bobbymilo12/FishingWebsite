@@ -545,12 +545,11 @@ function renderMarine(c, units) {
 async function loadTides(force) {
   const body = $("#tides-body");
 
-  if (!CONFIG.ADMIRALTY_API_KEY) {
+  if (!CONFIG.TIDES_PROXY_URL) {
     body.innerHTML = `
       <div class="error-note">
-        <strong>No ADMIRALTY API key set.</strong> Get a free key (~2 min) at
-        <a href="https://admiralty.azure-api.net/" target="_blank" rel="noopener">admiralty.azure-api.net</a>,
-        subscribe to "UK Tidal API - Discovery", and paste your Primary key into <code>config.js</code>.
+        <strong>Tide proxy not configured.</strong> Deploy the Cloudflare Worker
+        (see cloudflare-worker.js) and set <code>TIDES_PROXY_URL</code> in config.js.
       </div>`;
     return;
   }
@@ -561,11 +560,10 @@ async function loadTides(force) {
     const cacheKey = "fw:tides:" + CONFIG.ADMIRALTY_STATION_ID;
     let events = cacheGet(cacheKey, 6 * 60 * 60 * 1000, force);
     if (!events) {
-      const path = `https://admiraltyapi.azure-api.net/uktidalapi/api/V1/Stations/${CONFIG.ADMIRALTY_STATION_ID}/TidalEvents?duration=7`;
-      const url = CONFIG.CORS_PROXY ? CONFIG.CORS_PROXY + path : path;
-      const res = await fetch(url, {
-        headers: { "Ocp-Apim-Subscription-Key": CONFIG.ADMIRALTY_API_KEY }
-      });
+      const u = new URL(CONFIG.TIDES_PROXY_URL);
+      u.searchParams.set("station", CONFIG.ADMIRALTY_STATION_ID);
+      u.searchParams.set("duration", "7");
+      const res = await fetch(u.toString());
       if (!res.ok) throw new Error("HTTP " + res.status);
       events = await res.json();
       cacheSet(cacheKey, events);
@@ -575,7 +573,7 @@ async function loadTides(force) {
     renderFishing(); // fold tide state into the bite forecast
   } catch (err) {
     body.innerHTML = `<div class="error-note">
-      <strong>Couldn't load tides.</strong> Check that your ADMIRALTY API key in <code>config.js</code> is correct and active.
+      <strong>Couldn't load tides from the proxy.</strong> Check that the Worker is deployed, <code>TIDES_PROXY_URL</code> is correct, and the <code>ADMIRALTY_API_KEY</code> secret is set on the Worker.
       <br><span class="small">(${err.message})</span>
     </div>`;
   }
