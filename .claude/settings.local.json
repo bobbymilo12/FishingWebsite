@@ -4,7 +4,10 @@
       "WebSearch",
       "Bash(node --check app.js)",
       "Bash(node --check config.js)",
-      "Bash(node --check cloudflare-worker.js)"
+      "Bash(node --check cloudflare-worker.js)",
+      "Bash(curl -s -o /dev/null -w \"HTTP %{http_code}\\\\n\" \"https://fishing-tides.plymouthfishing.workers.dev/?station=0014&duration=7\")",
+      "Bash(curl -s \"https://fishing-tides.plymouthfishing.workers.dev/?station=0014&duration=7\")",
+      "Bash(curl *)"
     ]
   }
 }
