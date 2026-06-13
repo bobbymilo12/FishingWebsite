@@ -16,3 +16,6 @@ npm-debug.log*
 Thumbs.db
 .vscode/
 .idea/
+
+# Claude Code
+CLAUDE.md

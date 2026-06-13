@@ -286,6 +286,7 @@ body {
 .lc-time { font-size: 0.78rem; color: var(--muted); }
 .lc-icon { font-size: 1.2rem; }
 .lc-score { font-weight: 700; font-size: 1rem; }
+.later-chip.best-chip { outline: 2px solid var(--accent); outline-offset: 1px; }
 
 /* ---------- Stat grids (marine / sun-moon) ---------- */
 .stat-grid {

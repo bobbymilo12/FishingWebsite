@@ -218,7 +218,7 @@ function updateHeroTide(tides) {
 
    Shared state: weather and tides load independently and either can fail, so
    the card renders from whatever's arrived and re-renders when more turns up. */
-const fishState = { current: null, hourly: null, daily: null, tides: null };
+const fishState = { current: null, hourly: null, daily: null, tides: null, selectedIso: null };
 
 // Offset (ms) between the API's local wall-clock strings and real UTC, rounded
 // to the nearest half hour — lets us turn a wall-clock hour into a real instant
@@ -413,9 +413,25 @@ function buildLater(c, hourly, daily, tides) {
 }
 
 function renderFishing() {
-  const { current: c, hourly, daily, tides } = fishState;
+  const { current: c, hourly, daily, tides, selectedIso } = fishState;
   if (!c) return; // weather not in yet — keep the loading placeholder
 
+  const todayIso = isoDayKey(new Date());
+  const isToday = !selectedIso || selectedIso === todayIso;
+  const subEl = $("#fishing-sub");
+
+  if (!isToday) {
+    if (subEl) {
+      const d = new Date(selectedIso + "T12:00:00Z");
+      subEl.textContent = d.toLocaleDateString("en-GB", {
+        weekday: "long", day: "numeric", month: "short", timeZone: "UTC",
+      });
+    }
+    renderFishingForDay(selectedIso);
+    return;
+  }
+
+  if (subEl) subEl.textContent = "Bite forecast from pressure, sky & wind";
   updateHeroTide(tides);
 
   const { score, factors } = fishingScore(c, hourly, daily, tides, new Date());
@@ -456,6 +472,69 @@ function renderFishing() {
     </div>
     <ul class="fish-factors">${rows}</ul>
     ${laterHtml}`;
+}
+
+function renderFishingForDay(iso) {
+  const { hourly, daily, tides } = fishState;
+  if (!hourly || !hourly.time) return;
+
+  const offset = wallClockOffset(fishState.current);
+  const KEY_HOURS = [6, 9, 12, 15, 18, 21];
+  const slots = [];
+
+  for (const h of KEY_HOURS) {
+    const stamp = `${iso}T${String(h).padStart(2, "0")}:00`;
+    const i = hourly.time.findIndex((t) => t === stamp);
+    if (i === -1) continue;
+    const snap = hourSnapshot(hourly, i);
+    const at = new Date(new Date(snap.time + "Z").getTime() - offset);
+    const { score, factors } = fishingScore(snap, hourly, daily, tides, at);
+    const [label, icon, cls] = fishingRating(score);
+    slots.push({ time: String(h).padStart(2, "0") + ":00", score, factors, label, icon, cls });
+  }
+
+  if (slots.length === 0) {
+    $("#fishing-body").innerHTML = `<p class="loading">No forecast data for this day.</p>`;
+    return;
+  }
+
+  const best = slots.reduce((a, b) => (b.score > a.score ? b : a));
+
+  const rows = best.factors.map((f) => `
+    <li class="fish-factor ${f.verdict}">
+      <span class="ff-icon">${f.icon}</span>
+      <span class="ff-main">
+        <span class="ff-label">${f.label}</span>
+        ${f.note ? `<span class="ff-note">${f.note}</span>` : ""}
+      </span>
+      <span class="ff-value">${f.value}</span>
+    </li>`).join("");
+
+  const chipsHtml = `
+    <div class="fish-later">
+      <div class="fish-later-title">Throughout the day</div>
+      <div class="fish-later-row">
+        ${slots.map((p) => `
+          <div class="later-chip ${p.cls}${p === best ? " best-chip" : ""}" title="${p.label} — ${p.score}/100">
+            <span class="lc-time">${p.time}</span>
+            <span class="lc-icon">${p.icon}</span>
+            <span class="lc-score">${p.score}</span>
+          </div>`).join("")}
+      </div>
+    </div>`;
+
+  $("#fishing-body").innerHTML = `
+    <div class="fish-head ${best.cls}">
+      <div class="fish-gauge" style="--pct:${best.score}">
+        <span class="fish-pct">${best.score}</span>
+      </div>
+      <div class="fish-verdict">
+        <span class="fish-vlabel">${best.icon} ${best.label}</span>
+        <span class="fish-vsub">best window · ${best.time}</span>
+      </div>
+    </div>
+    <ul class="fish-factors">${rows}</ul>
+    ${chipsHtml}`;
 }
 
 function renderForecast(d) {
@@ -681,8 +760,10 @@ function renderTides(events) {
     calEl.querySelectorAll(".cal-day.has-tide").forEach((btn) => {
       btn.addEventListener("click", () => {
         selectedIso = btn.dataset.iso;
+        fishState.selectedIso = selectedIso;
         renderCal();
         showDay(selectedIso);
+        renderFishing();
       });
     });
     calEl.querySelectorAll(".cal-nav").forEach((btn) => {
